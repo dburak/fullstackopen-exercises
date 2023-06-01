@@ -14,7 +14,10 @@ const App = () => {
 
   const [selected, setSelected] = useState(0);
   const [controlArray, setControlArray] = useState([]);
+  const [votes, setVotes] = useState(Array(anecdotes.length).fill(0));
+  const [voteHelper, setVoteHelper] = useState(false);
 
+  const maxVote = votes.indexOf(Math.max(...votes));
   let randomAnecdote;
 
   const handleNext = () => {
@@ -25,6 +28,14 @@ const App = () => {
     setSelected(randomAnecdote);
   };
 
+  const handleVote = () => {
+    // Remember that the correct way of updating state stored in complex data structures like objects and arrays is to make a copy of the state.
+    const copy = [...votes];
+    copy[selected] += 1;
+    setVotes(copy);
+    setVoteHelper(true);
+  };
+
   if (
     controlArray[controlArray.length - 1] ===
       controlArray[controlArray.length - 2] ||
@@ -33,13 +44,25 @@ const App = () => {
     handleNext();
   }
 
-  console.log(controlArray);
-
   return (
     <div>
+      <h1>Anectode of the day</h1>
       {anecdotes[selected]}
       <br />
+      has {votes[selected]} votes
+      <br />
+      <button onClick={handleVote}>vote</button>
       <button onClick={handleNext}>next anectode</button>
+      <h1>Anectode with most votes</h1>
+      {voteHelper ? (
+        <div>
+          {anecdotes[maxVote]}
+          <br />
+          has {votes[maxVote]} votes
+        </div>
+      ) : (
+        <p>There is no vote today yet.</p>
+      )}
     </div>
   );
 };
