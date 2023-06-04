@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Filter from './components/Filter';
 import PersonForm from './components/PersonForm';
 import Persons from './components/Persons';
-import axios from 'axios';
+import Notification from './components/Notification';
 import bookService from './services/books';
 
 const App = () => {
@@ -11,11 +11,14 @@ const App = () => {
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
   const [filterName, setFilterName] = useState('');
+  const [notification, setNotification] = useState({});
 
   useEffect(() => {
-    axios.get('http://localhost:3001/persons').then((response) => {
-      setPersons(response.data);
-    });
+    const fetchInitialPersons = async () => {
+      const response = await bookService.getAll();
+      setPersons(response);
+    };
+    fetchInitialPersons();
   }, []);
 
   const filteredPersons = persons.filter((person) =>
@@ -48,27 +51,45 @@ const App = () => {
         )
       ) {
         const updatedPerson = await bookService.update(changedBook);
-        const updatedPersons = persons.map((person) =>
-          person.id === updatedPerson.id ? updatedPerson : person
-        );
-        setPersons(updatedPersons);
+
+        if (updatedPerson) {
+          const updatedPersons = persons.map((person) =>
+            person.id === updatedPerson.id ? updatedPerson : person
+          );
+          setPersons(updatedPersons);
+        } else {
+          setNotification({
+            message: `Information of ${newName} has already been removed from server`,
+            type: 'error',
+          });
+          setTimeout(() => {
+            setNotification({ message: null });
+          }, 5000);
+        }
       }
     } else {
       await bookService.create(nameObj);
 
-      // we need this to delete a person directly after add new book without page reload
       const newList = await bookService.getAll();
 
       setPersons(persons.concat(newList[newList.length - 1]));
+      setNotification({
+        message: `Added ${newName}`,
+        type: 'success',
+      });
+
+      setTimeout(() => {
+        setNotification({ message: null });
+      }, 3000);
     }
 
     setNewName('');
     setNewNumber('');
   };
 
-  const deleteName = async (name, id) => {
+  const deleteName = (name, id) => {
     if (window.confirm(`Delete ${name} ?`)) {
-      await bookService.deletePerson(id);
+      bookService.deletePerson(id);
       const updatedPersons = filteredPersons.filter(
         (person) => person.id !== id
       );
@@ -82,6 +103,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification notification={notification} />
       <div>
         filter shown with{' '}
         <Filter filterName={filterName} handleFilter={handleFilter} />

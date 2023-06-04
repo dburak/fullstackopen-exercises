@@ -20,7 +20,8 @@ const deletePerson = (id) => {
 const update = (newObject) => {
   return axios
     .put(`${baseUrl}/${newObject.id}`, newObject)
-    .then((response) => response.data);
+    .then((response) => response.data)
+    .catch((err) => console.log(err));
 };
 
 const bookService = { getAll, create, deletePerson, update };
