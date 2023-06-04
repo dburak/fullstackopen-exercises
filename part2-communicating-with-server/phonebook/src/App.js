@@ -3,14 +3,10 @@ import Filter from './components/Filter';
 import PersonForm from './components/PersonForm';
 import Persons from './components/Persons';
 import axios from 'axios';
+import bookService from './services/books';
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: 'Arto Hellas', number: '040-123456', id: 1 },
-    { name: 'Ada Lovelace', number: '39-44-5323523', id: 2 },
-    { name: 'Dan Abramov', number: '12-43-234345', id: 3 },
-    { name: 'Mary Poppendieck', number: '39-23-6423122', id: 4 },
-  ]);
+  const [persons, setPersons] = useState([]);
 
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
@@ -38,15 +34,46 @@ const App = () => {
     setFilterName(e.target.value);
   };
 
-  const addName = (e) => {
+  const addName = async (e) => {
     e.preventDefault();
     const nameObj = { name: newName, number: newNumber };
 
     const isExist = persons.find((person) => person.name === nameObj.name);
+    const changedBook = { ...isExist, number: newNumber };
 
-    isExist
-      ? alert(`${newName} is already added to phonebook`)
-      : setPersons(persons.concat(nameObj));
+    if (isExist) {
+      if (
+        window.confirm(
+          `${newName} is already added to phonebook, replace the old number with a new one ?`
+        )
+      ) {
+        const updatedPerson = await bookService.update(changedBook);
+        const updatedPersons = persons.map((person) =>
+          person.id === updatedPerson.id ? updatedPerson : person
+        );
+        setPersons(updatedPersons);
+      }
+    } else {
+      await bookService.create(nameObj);
+
+      // we need this to delete a person directly after add new book without page reload
+      const newList = await bookService.getAll();
+
+      setPersons(persons.concat(newList[newList.length - 1]));
+    }
+
+    setNewName('');
+    setNewNumber('');
+  };
+
+  const deleteName = async (name, id) => {
+    if (window.confirm(`Delete ${name} ?`)) {
+      await bookService.deletePerson(id);
+      const updatedPersons = filteredPersons.filter(
+        (person) => person.id !== id
+      );
+      setPersons(updatedPersons);
+    }
 
     setNewName('');
     setNewNumber('');
@@ -68,7 +95,7 @@ const App = () => {
         handleNumberChange={handleNumberChange}
       />
       <h3>Numbers</h3>
-      <Persons filteredPersons={filteredPersons} />
+      <Persons filteredPersons={filteredPersons} deleteName={deleteName} />
     </div>
   );
 };
