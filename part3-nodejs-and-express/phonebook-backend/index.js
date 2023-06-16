@@ -4,7 +4,6 @@ const app = express();
 const morgan = require('morgan');
 const cors = require('cors');
 const Phonebook = require('./models/phonebook');
-const phonebook = require('./models/phonebook');
 
 app.use(express.json());
 app.use(cors());
@@ -15,7 +14,7 @@ app.use(
 app.use(express.static('build'));
 
 app.get('/api/persons', (req, res) => {
-  Phonebook.find({}).then((contacts) => res.json(contacts));
+  Phonebook.find({}).then((phonebook) => res.json(phonebook));
 });
 
 app.get('/api/persons/:id', (req, res) => {
@@ -65,10 +64,11 @@ app.post('/api/persons', (req, res) => {
   // }
 });
 
-app.get('/info', (req, res) => {
+app.get('/info', async (req, res) => {
   const currentTime = new Date().toLocaleString('en-US');
+  const contacts = await Phonebook.find({})
   res.send(
-    `<p>Phonebook has info for ${phonebook.length} people</p><p>${currentTime}</p>`
+    `<p>Phonebook has info for ${contacts.length} people</p><p>${currentTime}</p>`
   );
 });
 

@@ -12,12 +12,12 @@ const url = `mongodb+srv://burakkddiker:${password}@cluster0.thl7lzy.mongodb.net
 mongoose.set('strictQuery', false);
 mongoose.connect(url);
 
-const contactSchema = new mongoose.Schema({
+const phonebookSchema = new mongoose.Schema({
   name: String,
   number: String,
 });
 
-const Contact = mongoose.model('Contact', contactSchema);
+const Contact = mongoose.model('Contact', phonebookSchema);
 
 // const contact = new Contact({
 //   name: process.argv[3],
