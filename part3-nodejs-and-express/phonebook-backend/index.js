@@ -7,7 +7,7 @@ const Phonebook = require('./models/phonebook');
 
 app.use(express.json());
 app.use(cors());
-morgan.token('body', (req, res) => JSON.stringify(req.body));
+morgan.token('body', (req) => JSON.stringify(req.body));
 app.use(
   morgan(':method :url :status :res[content-length] - :response-time ms :body')
 );
