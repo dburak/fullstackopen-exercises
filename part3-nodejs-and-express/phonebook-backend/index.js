@@ -60,7 +60,7 @@ app.delete('/api/persons/:id', (req, res, next) => {
     .catch((err) => next(err));
 });
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
   const body = req.body;
 
   if (body.name === undefined) {
@@ -72,7 +72,10 @@ app.post('/api/persons', (req, res) => {
     number: body.number,
   });
 
-  phonebook.save().then((savedContact) => res.json(savedContact));
+  phonebook
+    .save()
+    .then((savedContact) => res.status(201).json(savedContact))
+    .catch((error) => next(error));
 
   // const id = Math.floor(Math.random() * 50);
 
@@ -114,6 +117,8 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' });
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message });
   }
 
   next(error);

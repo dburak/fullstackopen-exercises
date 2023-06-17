@@ -68,19 +68,31 @@ const App = () => {
         }
       }
     } else {
-      await bookService.create(nameObj);
+      try {
+        const response = await bookService.create(nameObj);
 
-      const newList = await bookService.getAll();
+        if (response.status === 201) {
+          const newList = await bookService.getAll();
 
-      setPersons(persons.concat(newList[newList.length - 1]));
-      setNotification({
-        message: `Added ${newName}`,
-        type: 'success',
-      });
+          setPersons(persons.concat(newList[newList.length - 1]));
+
+          setNotification({
+            message: `Added ${newName}`,
+            type: 'success',
+          });
+        } else {
+          setNotification({
+            message: response.response.data.error,
+            type: 'error',
+          });
+        }
+      } catch (error) {
+        console.log(error);
+      }
 
       setTimeout(() => {
         setNotification({ message: null });
-      }, 3000);
+      }, 5000);
     }
 
     setNewName('');

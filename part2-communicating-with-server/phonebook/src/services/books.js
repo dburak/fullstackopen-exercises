@@ -8,7 +8,8 @@ const getAll = () => {
 const create = (newObject) => {
   return axios
     .post(baseUrl, newObject)
-    .then((response) => console.log(response));
+    .then((response) => response)
+    .catch((error) => error);
 };
 
 const deletePerson = (id) => {

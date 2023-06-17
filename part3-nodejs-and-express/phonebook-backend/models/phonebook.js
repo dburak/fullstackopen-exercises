@@ -16,7 +16,16 @@ mongoose
   });
 
 const phonebookSchema = new mongoose.Schema({
-  name: String,
+  name: {
+    type: String,
+    minLength: 3,
+    required: [true, 'User name required'],
+    validate: {
+      validator: function (v) {
+        return /^\d{2,3}-\d+$/.test(v) && v.length >= 8;
+      },
+    },
+  },
   number: String,
 });
 
