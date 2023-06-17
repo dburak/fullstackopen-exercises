@@ -17,20 +17,47 @@ app.get('/api/persons', (req, res) => {
   Phonebook.find({}).then((phonebook) => res.json(phonebook));
 });
 
-app.get('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id);
+app.get('/api/persons/:id', async (req, res, next) => {
+  // Phonebook.findById(req.params.id)
+  //   .then((result) => {
+  //     result ? res.json(result) : res.status(404).end();
+  //   })
+  //   .catch((error) => {
+  //     next(error);
+  //   });
 
-  const person = phonebook.find((p) => p.id === id);
-
-  !person ? res.status(204).end() : res.json(person);
+  // Alternative way
+  try {
+    const result = await Phonebook.findById(req.params.id);
+    result ? res.json(result) : res.status(404).end();
+  } catch (error) {
+    next(error);
+  }
 });
 
-app.delete('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id);
+app.put('/api/persons/:id', (req, res, next) => {
+  const body = req.body;
 
-  phonebook = phonebook.filter((p) => p.id !== id);
+  const phonebook = {
+    name: body.name,
+    number: body.number,
+  };
 
-  res.json(phonebook);
+  Phonebook.findByIdAndUpdate(req.params.id, phonebook, { new: true })
+    .then((updatedPhonebook) => res.json(updatedPhonebook))
+    .catch((err) => next(err));
+});
+
+app.delete('/api/persons/:id', (req, res, next) => {
+  Phonebook.findByIdAndDelete(req.params.id)
+    .then((result) => {
+      if (result) {
+        res.status(204).end();
+      } else {
+        res.status(404).send('Contact with given ID cannot be found');
+      }
+    })
+    .catch((err) => next(err));
 });
 
 app.post('/api/persons', (req, res) => {
@@ -66,7 +93,7 @@ app.post('/api/persons', (req, res) => {
 
 app.get('/info', async (req, res) => {
   const currentTime = new Date().toLocaleString('en-US');
-  const contacts = await Phonebook.find({})
+  const contacts = await Phonebook.find({});
   res.send(
     `<p>Phonebook has info for ${contacts.length} people</p><p>${currentTime}</p>`
   );
@@ -75,6 +102,24 @@ app.get('/info', async (req, res) => {
 app.get('/', (req, res) => {
   res.send('ok');
 });
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' });
+};
+
+app.use(unknownEndpoint);
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message);
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' });
+  }
+
+  next(error);
+};
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
