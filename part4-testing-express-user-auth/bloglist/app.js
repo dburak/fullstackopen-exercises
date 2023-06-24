@@ -1,4 +1,5 @@
 const express = require('express');
+const morgan = require('morgan')
 const app = express();
 const config = require('./utils/config');
 const middleware = require('./utils/middleware');
@@ -13,6 +14,8 @@ mongoose.connect(mongoUrl).then(() => console.log('connected mongodb'));
 
 app.use(cors());
 app.use(express.json());
+app.use(morgan('dev'))
+
 
 app.use('/api/blogs', blogsRouter);
 app.use('/api/users', usersRouter);
