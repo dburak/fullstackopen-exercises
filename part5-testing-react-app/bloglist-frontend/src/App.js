@@ -77,6 +77,7 @@ const App = () => {
     }
   };
 
+
   if (user === null) {
     return (
       <div>

@@ -32,5 +32,4 @@ const deleteblog = async (obj) => {
   await axios.delete(`${baseUrl}/${obj.id}`, config);
 };
 
-// eslint-disable-next-line import/no-anonymous-default-export
 export default { getAll, createBlog, setToken, updateLike, deleteblog };

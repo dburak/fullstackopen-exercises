@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import blogService from '../services/blogs';
 
-const Blog = ({ initialBlog }) => {
+const Blog = ({ initialBlog, onLike }) => {
   const blogStyle = {
     paddingTop: 10,
     paddingLeft: 2,
@@ -9,8 +9,14 @@ const Blog = ({ initialBlog }) => {
     borderWidth: 2,
     marginBottom: 5,
   };
-  const [detailedView, setDetailedView] = useState(false);
+
   const [blog, setBlog] = useState(initialBlog);
+  const [detailedView, setDetailedView] = useState(false);
+
+
+  if (typeof onLike === 'function') {
+    onLike();
+  }
 
   const handleView = () => {
     setDetailedView(!detailedView);
@@ -37,7 +43,7 @@ const Blog = ({ initialBlog }) => {
     }
   };
 
-  const loggedUser = JSON.parse(localStorage.getItem('loggedBlogUser'));
+  // const loggedUser = JSON.parse(localStorage.getItem('loggedBlogUser'));
 
   if (!blog) {
     return null;
@@ -45,7 +51,7 @@ const Blog = ({ initialBlog }) => {
 
   if (detailedView) {
     return (
-      <div style={blogStyle}>
+      <div style={blogStyle} className='blog'>
         <p>
           {blog.title} {blog.author} <button onClick={handleView}>hide</button>
         </p>
@@ -54,15 +60,18 @@ const Blog = ({ initialBlog }) => {
           likes {blog.likes} <button onClick={handleLike}>like</button>
         </p>
         <p>{blog.user[0].name}</p>
-        {blog.user[0].id === loggedUser.id && (
+        {/* {blog.user[0].id === loggedUser.id && (
+          <button onClick={handleDelete}>remove</button>
+        )} */}
+        {blog.user[0].id && (
           <button onClick={handleDelete}>remove</button>
         )}
       </div>
     );
   } else {
     return (
-      <div style={blogStyle}>
-        {blog.title} {blog.author} <button onClick={handleView}>view</button>
+      <div style={blogStyle} className='blog'>
+        {blog.title} {blog.author} <button className='view' onClick={handleView}>view</button>
       </div>
     );
   }
