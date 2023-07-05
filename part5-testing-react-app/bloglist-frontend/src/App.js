@@ -77,7 +77,6 @@ const App = () => {
     }
   };
 
-
   if (user === null) {
     return (
       <div>
@@ -87,6 +86,7 @@ const App = () => {
           <div>
             username
             <input
+              id='username'
               type='text'
               value={username}
               name='Username'
@@ -96,13 +96,14 @@ const App = () => {
           <div>
             password
             <input
+              id='password'
               type='password'
               value={password}
               name='Password'
               onChange={({ target }) => setPassword(target.value)}
             />
           </div>
-          <button type='submit'>login</button>
+          <button id='login-button' type='submit'>login</button>
         </form>
       </div>
     );
@@ -113,7 +114,7 @@ const App = () => {
       <h2>blogs</h2>
       <Notification notification={notification} />
       <p>
-        {user.name} logged in <button onClick={handleLogout}>logout</button>
+        {user.name} logged in <button id='btnLogout' onClick={handleLogout}>logout</button>
       </p>
       <Togglable buttonLabel='create new blog' ref={blogFormRef}>
         <CreateForm createBlog={addBlog} />

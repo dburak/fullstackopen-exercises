@@ -43,7 +43,7 @@ const Blog = ({ initialBlog, onLike }) => {
     }
   };
 
-  // const loggedUser = JSON.parse(localStorage.getItem('loggedBlogUser'));
+  const loggedUser = JSON.parse(localStorage.getItem('loggedBlogUser'));
 
   if (!blog) {
     return null;
@@ -53,25 +53,22 @@ const Blog = ({ initialBlog, onLike }) => {
     return (
       <div style={blogStyle} className='blog'>
         <p>
-          {blog.title} {blog.author} <button onClick={handleView}>hide</button>
+          {blog.title} {blog.author} <button id='btnHide' onClick={handleView}>hide</button>
         </p>
         <p>{blog.url}</p>
         <p>
-          likes {blog.likes} <button onClick={handleLike}>like</button>
+          likes {blog.likes} <button id='btnLike' onClick={handleLike}>like</button>
         </p>
         <p>{blog.user[0].name}</p>
-        {/* {blog.user[0].id === loggedUser.id && (
-          <button onClick={handleDelete}>remove</button>
-        )} */}
-        {blog.user[0].id && (
-          <button onClick={handleDelete}>remove</button>
+        {blog.user[0].id === loggedUser.id && (
+          <button id='btnRemove' onClick={handleDelete}>remove</button>
         )}
       </div>
     );
   } else {
     return (
       <div style={blogStyle} className='blog'>
-        {blog.title} {blog.author} <button className='view' onClick={handleView}>view</button>
+        {blog.title} {blog.author} <button id='btnView' className='view' onClick={handleView}>view</button>
       </div>
     );
   }
