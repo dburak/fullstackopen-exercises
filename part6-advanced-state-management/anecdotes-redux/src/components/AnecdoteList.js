@@ -1,22 +1,23 @@
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { voteOf } from '../reducers/anecdoteReducer';
 
 const AnecdoteList = () => {
-  const anecdotes = useSelector((state) => state);
   const dispatch = useDispatch();
+  const anecdotes = useSelector((state) => {
+    if (state.filters === '') {
+      return state.anecdotes;
+    } else {
+      return state.anecdotes.filter((anecdote) =>
+        anecdote.content.toLowerCase().includes(state.filters.toLowerCase())
+      );
+    }
+  });
   const vote = (id) => {
     let obj = anecdotes.find((anecdote) => anecdote.id === id);
     dispatch(voteOf(obj));
   };
 
-  const voteOf = (obj) => {
-    return {
-      type: 'VOTE',
-      payload: {
-        obj,
-      },
-    };
-  };
   return anecdotes.map((anecdote) => (
     <div key={anecdote.id}>
       <div>{anecdote.content}</div>
