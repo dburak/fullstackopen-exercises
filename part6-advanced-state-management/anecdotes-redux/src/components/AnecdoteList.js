@@ -1,6 +1,5 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { voteOf } from '../reducers/anecdoteReducer';
 
 const AnecdoteList = () => {
   const dispatch = useDispatch();
@@ -15,7 +14,11 @@ const AnecdoteList = () => {
   });
   const vote = (id) => {
     let obj = anecdotes.find((anecdote) => anecdote.id === id);
-    dispatch(voteOf(obj));
+    dispatch({ type: 'anecdotes/vote', payload: obj });
+    dispatch({ type: 'notification/setNotification', payload: obj });
+    setTimeout(() => {
+      dispatch({ type: 'notification/reset' });
+    }, 5000);
   };
 
   return anecdotes.map((anecdote) => (

@@ -5,20 +5,10 @@ import { useDispatch } from 'react-redux';
 const AnecdoteForm = () => {
   const dispatch = useDispatch();
   const [newAnecdote, setNewAnecdote] = useState('');
-  
-
-  const createOf = () => {
-    return {
-      type: 'CREATE',
-      payload: {
-        newAnecdote,
-      },
-    };
-  };
 
   const create = (e) => {
     e.preventDefault();
-    dispatch(createOf());
+    dispatch({ type: 'anecdotes/create', payload: newAnecdote });
     setNewAnecdote('');
   };
 
