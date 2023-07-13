@@ -1,6 +1,8 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 
-const Notification = ({ notification }) => {
+const Notification = () => {
+  const notification = useSelector((state) => state.notification);
   const notificationStylePositive = {
     color: 'green',
     background: 'lightgrey',
@@ -20,6 +22,8 @@ const Notification = ({ notification }) => {
     padding: 10,
     marginBottom: 10,
   };
+
+  if (!notification) return null;
 
   return notification.type === 'success' ? (
     <div style={notificationStylePositive}>{`${notification.message}`}</div>

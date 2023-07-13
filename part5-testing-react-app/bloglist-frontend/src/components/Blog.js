@@ -1,7 +1,10 @@
 import { useState } from 'react';
-import blogService from '../services/blogs';
+import { useDispatch } from 'react-redux';
+import { likeReduxBlog, deleteReduxBlog } from '../reducers/blogReducer';
 
-const Blog = ({ initialBlog, onLike }) => {
+const Blog = ({ blog, onLike }) => {
+  const dispatch = useDispatch();
+
   const blogStyle = {
     paddingTop: 10,
     paddingLeft: 2,
@@ -10,9 +13,7 @@ const Blog = ({ initialBlog, onLike }) => {
     marginBottom: 5,
   };
 
-  const [blog, setBlog] = useState(initialBlog);
   const [detailedView, setDetailedView] = useState(false);
-
 
   if (typeof onLike === 'function') {
     onLike();
@@ -23,23 +24,14 @@ const Blog = ({ initialBlog, onLike }) => {
   };
 
   const handleLike = async () => {
-    const updatedObj = {
-      ...blog,
-      likes: ++blog.likes,
-      user: blog.user[0].id,
-    };
-
-    const response = await blogService.updateLike(updatedObj);
-
-    setBlog(response);
+    dispatch(likeReduxBlog(blog));
   };
 
   const handleDelete = async () => {
     const res = window.confirm(`Remove blog ${blog.title} by ${blog.author}`);
 
     if (res) {
-      await blogService.deleteblog(blog);
-      setBlog(null);
+      dispatch(deleteReduxBlog(blog));
     }
   };
 
@@ -53,22 +45,33 @@ const Blog = ({ initialBlog, onLike }) => {
     return (
       <div style={blogStyle} className='blog'>
         <p>
-          {blog.title} {blog.author} <button id='btnHide' onClick={handleView}>hide</button>
+          {blog.title} {blog.author}{' '}
+          <button id='btnHide' onClick={handleView}>
+            hide
+          </button>
         </p>
         <p>{blog.url}</p>
         <p>
-          likes {blog.likes} <button id='btnLike' onClick={handleLike}>like</button>
+          likes {blog.likes}{' '}
+          <button id='btnLike' onClick={handleLike}>
+            like
+          </button>
         </p>
         <p>{blog.user[0].name}</p>
         {blog.user[0].id === loggedUser.id && (
-          <button id='btnRemove' onClick={handleDelete}>remove</button>
+          <button id='btnRemove' onClick={handleDelete}>
+            remove
+          </button>
         )}
       </div>
     );
   } else {
     return (
       <div style={blogStyle} className='blog'>
-        {blog.title} {blog.author} <button id='btnView' className='view' onClick={handleView}>view</button>
+        {blog.title} {blog.author}{' '}
+        <button id='btnView' className='view' onClick={handleView}>
+          view
+        </button>
       </div>
     );
   }

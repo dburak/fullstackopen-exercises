@@ -1,77 +1,83 @@
 import { useState, useEffect, useRef } from 'react';
 import Blog from './components/Blog';
-import blogService from './services/blogs';
-import loginService from './services/login';
 import Notification from './components/Notification';
 import CreateForm from './components/CreateForm';
 import Togglable from './components/Togglable';
+import { useDispatch, useSelector } from 'react-redux';
+import { setReduxNotification } from './reducers/notificationReducer';
+import { setReduxBlogs, createReduxBlog } from './reducers/blogReducer';
+import {
+  setReduxLogin,
+  setReduxLogout,
+  setReduxAuth,
+} from './reducers/loginReducer';
 
 const App = () => {
   const blogFormRef = useRef();
-  const [blogs, setBlogs] = useState([]);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [user, setUser] = useState(null);
-  const [notification, setNotification] = useState({});
+  const dispatch = useDispatch();
+  const blogs = useSelector((state) => state.blogs);
+  const user = useSelector((state) => state.login);
 
   useEffect(() => {
-    blogService.getAll().then((blogs) => setBlogs(blogs));
+    dispatch(setReduxBlogs());
   }, []);
 
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedBlogUser');
     if (loggedUserJSON) {
       const user = JSON.parse(loggedUserJSON);
-      setUser(user);
-      blogService.setToken(user.token);
+      dispatch(setReduxAuth(user));
     }
   }, []);
 
   const handleLogin = async (event) => {
     event.preventDefault();
     try {
-      const user = await loginService.login({ username, password });
-
-      window.localStorage.setItem('loggedBlogUser', JSON.stringify(user));
-      blogService.setToken(user.token);
-      setUser(user);
+      await dispatch(setReduxLogin(username, password));
       setUsername('');
       setPassword('');
-      setNotification({
-        message: 'Successfully logged in',
-        type: 'success',
-      });
-      setTimeout(() => {
-        setNotification({ message: null });
-      }, 3000);
+      dispatch(
+        setReduxNotification(
+          {
+            message: 'Successfully logged in',
+            type: 'success',
+          },
+          3
+        )
+      );
     } catch (error) {
-      setNotification({
-        message: 'wrong username or password',
-        type: 'error',
-      });
-      setTimeout(() => {
-        setNotification({ message: null });
-      }, 3000);
+      dispatch(
+        setReduxNotification(
+          {
+            message: 'wrong username or password',
+            type: 'error',
+          },
+          3
+        )
+      );
     }
   };
 
   const handleLogout = () => {
     window.localStorage.removeItem('loggedBlogUser');
-    setUser(null);
+    dispatch(setReduxLogout());
   };
 
   const addBlog = async (blogObject) => {
     blogFormRef.current.toggleVisibility();
     try {
-      const result = await blogService.createBlog(blogObject);
-      setBlogs(blogs.concat(result));
-      setNotification({
-        message: `a new blog ${result.title} by ${result.author} added`,
-        type: 'success',
-      });
-      setTimeout(() => {
-        setNotification({ message: null });
-      }, 3000);
+      dispatch(createReduxBlog(blogObject));
+      dispatch(
+        setReduxNotification(
+          {
+            message: `a new blog ${blogObject.title} by ${blogObject.author} added`,
+            type: 'success',
+          },
+          5
+        )
+      );
     } catch (error) {
       console.log(error);
     }
@@ -81,7 +87,7 @@ const App = () => {
     return (
       <div>
         <h2>Log in to application</h2>
-        <Notification notification={notification} />
+        <Notification />
         <form onSubmit={handleLogin}>
           <div>
             username
@@ -103,7 +109,9 @@ const App = () => {
               onChange={({ target }) => setPassword(target.value)}
             />
           </div>
-          <button id='login-button' type='submit'>login</button>
+          <button id='login-button' type='submit'>
+            login
+          </button>
         </form>
       </div>
     );
@@ -112,18 +120,19 @@ const App = () => {
   return (
     <div>
       <h2>blogs</h2>
-      <Notification notification={notification} />
+      <Notification />
       <p>
-        {user.name} logged in <button id='btnLogout' onClick={handleLogout}>logout</button>
+        {user.name} logged in{' '}
+        <button id='btnLogout' onClick={handleLogout}>
+          logout
+        </button>
       </p>
       <Togglable buttonLabel='create new blog' ref={blogFormRef}>
         <CreateForm createBlog={addBlog} />
       </Togglable>
-      {blogs
-        .sort((a, b) => b.likes - a.likes)
-        .map((blog) => (
-          <Blog key={blog.id} initialBlog={blog} />
-        ))}
+      {blogs.map((blog) => (
+        <Blog key={blog.id} blog={blog} />
+      ))}
     </div>
   );
 };
