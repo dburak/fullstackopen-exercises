@@ -3,22 +3,40 @@ import Blog from './components/Blog';
 import Notification from './components/Notification';
 import CreateForm from './components/CreateForm';
 import Togglable from './components/Togglable';
-import { useDispatch, useSelector } from 'react-redux';
-import { setReduxNotification } from './reducers/notificationReducer';
-import { setReduxBlogs, createReduxBlog } from './reducers/blogReducer';
-import {
-  setReduxLogin,
-  setReduxLogout,
-  setReduxAuth,
-} from './reducers/loginReducer';
+import { useDispatch } from 'react-redux';
+import { setReduxBlogs } from './reducers/blogReducer';
+import { useNotify } from './NotificationContext';
+import { useLogin, useAuthValue, useLogout } from './AuthContext';
+import { useQuery, useQueryClient, useMutation } from 'react-query';
+import blogService from './services/blogs';
+import loginService from './services/login';
 
 const App = () => {
   const blogFormRef = useRef();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const dispatch = useDispatch();
-  const blogs = useSelector((state) => state.blogs);
-  const user = useSelector((state) => state.login);
+
+  const queryClient = useQueryClient();
+  const notifyWith = useNotify();
+  const loginWith = useLogin();
+  const logout = useLogout();
+
+  const result = useQuery('blogs', blogService.getAll, {
+    retry: 1,
+  });
+
+  const user = useAuthValue();
+
+  const blogMutation = useMutation(blogService.createBlog, {
+    onSuccess: (createdBlog) => {
+      queryClient.invalidateQueries('blogs');
+      notifyWith({
+        message: `a new blog ${createdBlog.title} by ${createdBlog.author} added`,
+        type: 'success',
+      });
+    },
+  });
 
   useEffect(() => {
     dispatch(setReduxBlogs());
@@ -28,59 +46,40 @@ const App = () => {
     const loggedUserJSON = window.localStorage.getItem('loggedBlogUser');
     if (loggedUserJSON) {
       const user = JSON.parse(loggedUserJSON);
-      dispatch(setReduxAuth(user));
+      loginWith(user);
     }
   }, []);
 
   const handleLogin = async (event) => {
     event.preventDefault();
     try {
-      await dispatch(setReduxLogin(username, password));
+      const loggedUser = await loginService.login({ username, password });
+      window.localStorage.setItem('loggedBlogUser', JSON.stringify(loggedUser));
+      blogService.setToken(loggedUser.token);
+      loginWith(loggedUser);
       setUsername('');
       setPassword('');
-      dispatch(
-        setReduxNotification(
-          {
-            message: 'Successfully logged in',
-            type: 'success',
-          },
-          3
-        )
-      );
+      notifyWith({
+        message: 'Successfully logged in',
+        type: 'success',
+      });
     } catch (error) {
-      dispatch(
-        setReduxNotification(
-          {
-            message: 'wrong username or password',
-            type: 'error',
-          },
-          3
-        )
-      );
+      notifyWith({
+        message: 'wrong username or password',
+        type: 'error',
+      });
     }
   };
 
   const handleLogout = () => {
     window.localStorage.removeItem('loggedBlogUser');
-    dispatch(setReduxLogout());
+    logout();
   };
 
   const addBlog = async (blogObject) => {
     blogFormRef.current.toggleVisibility();
-    try {
-      dispatch(createReduxBlog(blogObject));
-      dispatch(
-        setReduxNotification(
-          {
-            message: `a new blog ${blogObject.title} by ${blogObject.author} added`,
-            type: 'success',
-          },
-          5
-        )
-      );
-    } catch (error) {
-      console.log(error);
-    }
+
+    blogMutation.mutate(blogObject);
   };
 
   if (user === null) {
@@ -116,6 +115,12 @@ const App = () => {
       </div>
     );
   }
+
+  if (result.isLoading) {
+    return <div>loading data...</div>;
+  }
+
+  const blogs = result.data;
 
   return (
     <div>

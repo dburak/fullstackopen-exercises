@@ -1,8 +1,9 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
+import { useNotificationValue } from '../NotificationContext';
 
 const Notification = () => {
-  const notification = useSelector((state) => state.notification);
+  const notification = useNotificationValue();
+
   const notificationStylePositive = {
     color: 'green',
     background: 'lightgrey',

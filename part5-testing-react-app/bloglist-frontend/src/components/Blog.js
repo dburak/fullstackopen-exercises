@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { likeReduxBlog, deleteReduxBlog } from '../reducers/blogReducer';
+import { useQueryClient, useMutation } from 'react-query';
+import blogService from '../services/blogs';
 
 const Blog = ({ blog, onLike }) => {
-  const dispatch = useDispatch();
+  const queryClient = useQueryClient();
 
   const blogStyle = {
     paddingTop: 10,
@@ -23,15 +23,28 @@ const Blog = ({ blog, onLike }) => {
     setDetailedView(!detailedView);
   };
 
-  const handleLike = async () => {
-    dispatch(likeReduxBlog(blog));
+  const likeMutation = useMutation(blogService.updateLike, {
+    onSuccess: () => {
+      queryClient.invalidateQueries('blogs');
+    },
+  });
+
+  const deleteMutation = useMutation(blogService.deleteblog, {
+    onSuccess: () => {
+      queryClient.invalidateQueries('blogs');
+    },
+  });
+
+  const handleLike = async (blog) => {
+    const likedBlog = { ...blog, likes: blog.likes + 1 };
+    likeMutation.mutate(likedBlog);
   };
 
   const handleDelete = async () => {
     const res = window.confirm(`Remove blog ${blog.title} by ${blog.author}`);
 
     if (res) {
-      dispatch(deleteReduxBlog(blog));
+      deleteMutation.mutate(blog);
     }
   };
 
@@ -53,13 +66,13 @@ const Blog = ({ blog, onLike }) => {
         <p>{blog.url}</p>
         <p>
           likes {blog.likes}{' '}
-          <button id='btnLike' onClick={handleLike}>
+          <button id='btnLike' onClick={() => handleLike(blog)}>
             like
           </button>
         </p>
         <p>{blog.user[0].name}</p>
         {blog.user[0].id === loggedUser.id && (
-          <button id='btnRemove' onClick={handleDelete}>
+          <button id='btnRemove' onClick={() => handleDelete(blog)}>
             remove
           </button>
         )}
